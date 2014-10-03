@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html ng-app="kavidev">
+<head>
+    <title></title>
+    <meta charset="utf-8" />
+    <link href="kendo/styles/kendo.mobile.all.min.css" rel="stylesheet" />
+    <link href="styles/main.css" rel="stylesheet" />
+
+    <script src="cordova.js"></script>
+    <script src="kendo/js/jquery.min.js"></script>
+    <script src="kendo/js/kendo.mobile.min.js"></script>
+    <script src="scripts/angular.min.js"></script>
+    <script src="scripts/everlive.all.min.js"></script>
+    <!--<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=true"></script>-->
+
+    <script src="scripts/app.js"></script>
+    <script src="scripts/login.js"></script>
+    <script src="scripts/location.js"></script>
+    
+
+    <script src="app/services/gameManager.js"></script>
+    <script src="app/controllers/HomeController.js"></script>
+    <script src="app/controllers/NewGameController.js"></script>
+    <script src="app/controllers/GameController.js"></script>
+    <script src="app/controllers/LoadGameController.js"></script>
+    <script src="app/controllers/LoginController.js"></script>
+</head>
+<body>
+    <!-- Home Screen -->
+    <div id="home-screen" data-role="view" data-title="Home" ng-controller="HomeController">
+        <div class="view-content">
+            <h1>KaviDev</h1>
+            
+            <ul data-role="listview" data-style="inset" ng-repeat="item in navItems">
+                <li>
+                    <a ng-click="loadScreen(item)">{{item.name}}</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+
+    <!-- New Game Screen -->
+    <div id="new-game-screen" data-role="view" data-title="New Game" data-transition="slide" ng-controller="NewGameController">
+        <div class="view-content">
+            <ul data-role="listview" data-style="inset" data-type="group">
+                <li>
+                    <ul>
+                        <li>
+                            <label>
+                                Game Name:
+                                <input type="text" ng-model="game.name" />
+                            </label>
+                        </li>
+                    </ul>
+                </li>
+                
+                 
+                <li>
+                    Players:       
+                    <button data-role="button" ng-disabled="game.players.length === 6" ng-click="addNew()">Add New</button>
+                
+                    <ul>
+                        <li ng-repeat="player in game.players">
+                            <label>
+                                Player {{player.id}}:
+                                <input type="text" ng-model="player.name" ng-blur="doneEditing(player)" autofocus />
+                            </label>
+                        </li>
+                    </ul>
+                    
+                </li>
+                 
+                <li>
+                    <button data-role="button" ng-click="play()" ng-hide="hidePlay()">Play</button>
+                </li>
+            </ul>
+            
+        </div>
+    </div>
+    
+    <!-- Game Screen-->
+    <div id="game-screen" data-role="view" data-title="Game" data-transition="slide" ng-controller="GameController">
+        <div class="content">
+            <h1>{{game.name}}</h1>
+            <ul class="game-list">
+                <li ng-repeat="player in game.players" ng-controller="PlayerController">
+                    <div style="float: left; background: none;" class="game-col player-name">{{player.name}}</div>
+                    <div class="game-col" style="background: none;min-height:1px;">
+                        <button data-role="button" class="next-button" ng-show="showPrevious" ng-click="moveToPrevousLetter(player)">{{previousLetter}}</button>
+                    </div>
+                    <div class="game-col" style="background: none;text-align:center;">{{player.currentLetter}}</div>
+                    <div class="game-col" style="background: none;"><button data-role="button" class="next-button" ng-show="showNext" ng-click="moveToNextLetter(player)">{{nextLetter}}</button></div>
+                </li>
+            </ul>
+            
+            <div class="save-buttons">
+                <button data-role="button" ng-click="saveGame()">Save</button>
+                <button data-role="button" ng-click="publishGame()">Publish</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Load Games Screen -->
+    <div id="saved-games-screen" data-role="view" data-title="Saved Games" data-transition="slide" ng-controller="LoadGameController">
+        <div class="content">
+            <ul data-role="listview" data-style="inset">
+                <li ng-repeat="game in games">
+                    <a data-role="listview-link" class="km-listview-link" ng-click="resumeGame(game)">{{game.name}}</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    
+    <!--Login-->
+    <div id="tabstrip-login"
+        data-role="view"
+        data-title="Login"
+        data-model="app.loginService.viewModel">
+
+        <div class="view-content">
+            <div class="logo"></div>
+            <h3 data-bind="invisible: isLoggedIn">Enter your credentials:</h3>
+            <h1 class="welcome" data-bind="visible: isLoggedIn">Welcome, <span data-bind="text: username"></span>!
+            </h1>
+            <div class="buttonArea">
+                <input type="submit" id="logout" data-role="button" data-bind="click: onLogout, visible: isLoggedIn" class="login-button" value="Logout" />
+            </div>
+
+            <form data-bind="events: { keyup: checkEnter }">
+                <ul data-role="listview" data-style="inset" data-bind="invisible: isLoggedIn">
+                    <li>
+                        <label>
+                            Username
+                                <input type="text" data-bind="value: username" />
+                        </label>
+                    </li>
+                    <li>
+                        <label>
+                            Password
+                                <input type="password" data-bind="value: password" />
+                        </label>
+                    </li>
+                </ul>
+
+                <div class="buttonArea">
+                    <input type="submit" id="login" data-role="button" data-bind="click: onLogin, invisible: isLoggedIn" class="login-button" value="Login" />
+                </div>
+            </form>
+        </div>
+
+    </div>
+    
+    <div id="login-screen" data-role="view" data-title="Login" ng-controller="LoginController">
+        <div data-role="content">
+            <div class="logo"></div>
+            <h3 ng-hide="isLoggedIn">Enter your credentials:</h3>
+            <h1 class="welcome" ng-show="isLoggedIn">Welcome, {{username}}!</h1>
+            <div class="buttonArea">
+                <input type="submit" id="logout" data-role="button" ng-show="isLoggedIn" ng-click="logout()" class="login-button" value="Logout" />
+            </div>
+
+            <form>
+                <ul data-role="listview" data-style="inset" ng-hide="isLoggedIn">
+                    <li>
+                        <label>
+                            Username
+                            <input type="text" ng-model="username" />
+                        </label>
+                    </li>
+                    <li>
+                        <label>
+                            Password
+                            <input type="password" ng-model="password" />
+                        </label>
+                    </li>
+                </ul>
+
+                <div class="buttonArea">
+                    <input type="submit" id="login" data-role="button" ng-click="login()" ng-hide="isLoggedIn" class="login-button" value="Login" />
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <!--Location-->
+    <div id="tabstrip-location"
+        data-role="view"
+        data-title="Location"
+        data-init="app.locationService.initLocation"
+        data-show="app.locationService.show"
+        data-hide="app.locationService.hide"
+        data-model="app.locationService.viewModel"
+        data-stretch="true">
+
+        <div id="no-map" data-bind="invisible: isGoogleMapsInitialized">
+            Location requires internet connection to display the map.
+        </div>
+        <div id="map-search-wrap" data-bind="visible: isGoogleMapsInitialized">
+            <button id="map-navigate-home" data-bind="click: onNavigateHome"></button>
+            <form onsubmit="return false;">
+                <input id="map-address" type="search" data-bind="value: address" placeholder="Address" />
+                <input id="map-search" type="submit" value="" data-bind="click: onSearchAddress" />
+            </form>
+        </div>
+        <div id="map-canvas" data-bind="visible: isGoogleMapsInitialized"></div>
+
+    </div>
+
+
+    <!--Layout-->
+    <div data-role="layout" data-id="tabstrip-layout">
+
+        <!--Header-->
+        <div data-role="header">
+            <div data-role="navbar">
+                <span data-role="view-title"></span>
+                <a data-role="button" href="#home-screen" data-icon="home" data-align="right"></a>
+            </div>
+        </div>
+
+        <!--Footer-->
+        <div data-role="footer">
+            <div data-role="tabstrip">
+                <a href="#home-screen" data-icon="home">Home</a>
+                <a href="#login-screen" data-icon="contacts">Login</a>
+                <!--<a href="#tabstrip-login" data-icon="contacts">Loginold</a>
+                <a href="#tabstrip-location" data-icon="search">Location</a>
+                <a href="#tabstrip-weather" data-icon="globe">Weather</a>-->
+            </div>
+        </div>
+    </div>
+</body>
+</html>
